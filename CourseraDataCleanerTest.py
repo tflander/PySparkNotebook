@@ -15,11 +15,12 @@ def spark_session():
 def test_sql_classification(spark_session):
     data_file = "test_data/sql.csv"
     raw_data = spark_session.read.csv(data_file, header=True)
-    clean_data = clean_coursera_data(spark_session, raw_data)
 
-    unclassified_rows = clean_data.filter(clean_data['Department'].isNull())
-    classified_rows = clean_data.filter(clean_data['Department'].isNotNull())
+    clean_data = clean_coursera_data(raw_data)
 
-    assert clean_data.count() == 2
-    assert classified_rows.count() == 1
-    # raw_data.first()['Course Name']
+    assert clean_data.count() == raw_data.count()
+    categorized_rows = clean_data.filter(clean_data['Department'].isNotNull())
+    assert categorized_rows.count() == 1
+    for classified_row in categorized_rows.collect():
+        assert classified_row['Department'] == 'Programming'
+        assert classified_row['Primary Subject'] == 'SQL'
