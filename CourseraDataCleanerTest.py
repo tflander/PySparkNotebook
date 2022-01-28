@@ -14,7 +14,7 @@ def spark_session():
 
 def test_sql_classification(spark_session):
     data_file = "test_data/sql.csv"
-    raw_data = spark_session.read.csv(data_file, header=True)
+    raw_data = spark_session.read.option('escape', '"').csv(data_file, header=True)
 
     clean_data = clean_coursera_data(raw_data)
 
@@ -24,3 +24,24 @@ def test_sql_classification(spark_session):
     for classified_row in categorized_rows.collect():
         assert classified_row['Department'] == 'Programming'
         assert classified_row['Primary Subject'] == 'SQL'
+
+
+def test_departments_from_training_data(spark_session):
+    data_file = "test_data/CourseraTrainingSet1.csv"
+    raw_data = spark_session.read.option('escape', '"').csv(data_file, header=True)
+
+    clean_data = clean_coursera_data(raw_data)
+
+    matched_departments = clean_data.filter(clean_data['Expected Department'] == clean_data['Department']).count()
+    assert matched_departments == clean_data.count()
+
+
+def test_primary_subjects_from_training_data(spark_session):
+    data_file = "test_data/CourseraTrainingSet1.csv"
+    raw_data = spark_session.read.option('escape', '"').csv(data_file, header=True)
+
+    clean_data = clean_coursera_data(raw_data)
+
+    # TODO: count rows where 'Expected Department' matches 'Department'
+    matched_primary_subjects = clean_data.filter(clean_data['Expected Primary Subject'] == clean_data['Primary Subject']).count()
+    assert matched_primary_subjects == clean_data.count()
